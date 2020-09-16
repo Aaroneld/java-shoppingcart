@@ -1,17 +1,19 @@
 package com.lambdaschool.shoppingcart.services;
 
 import com.lambdaschool.shoppingcart.exceptions.ResourceNotFoundException;
-import com.lambdaschool.shoppingcart.models.Cart;
-import com.lambdaschool.shoppingcart.models.CartItem;
-import com.lambdaschool.shoppingcart.models.Product;
-import com.lambdaschool.shoppingcart.models.User;
+import com.lambdaschool.shoppingcart.models.*;
 import com.lambdaschool.shoppingcart.repositories.CartRepository;
 import com.lambdaschool.shoppingcart.repositories.ProductRepository;
 import com.lambdaschool.shoppingcart.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 @Transactional
@@ -46,7 +48,26 @@ public class CartServiceImpl
     @Override
     public List<Cart> findAllByUserId(Long userid)
     {
-        return cartrepos.findAllByUser_Userid(userid);
+        boolean isAdmin = false;
+
+        Authentication authentication = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        User authenticatedUser = userrepos.findById(userid)
+                .orElseThrow(() -> new EntityNotFoundException("User" + userid + "Not Found"));
+
+        User user = userrepos.findById(userid)
+                .orElseThrow(() -> new EntityNotFoundException("User" + userid + "Not Found"));
+
+        for(UserRole ur : user.getRoles())
+        {
+            if(ur.getRole().getName() == "ADMIN") isAdmin = true;
+        }
+
+        if(userid == authenticatedUser.getUserid() || isAdmin) {
+            return cartrepos.findAllByUser_Userid(userid);
+        } else throw new AuthenticationCredentialsNotFoundException("You are not authorized");
     }
 
     @Override

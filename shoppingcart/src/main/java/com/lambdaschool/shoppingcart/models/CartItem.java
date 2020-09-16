@@ -36,6 +36,11 @@ public class CartItem
 
     }
 
+    public CartItem(long quantity, String comments) {
+        this.quantity = quantity;
+        this.comments = comments;
+    }
+
     public Cart getCart()
     {
         return cart;

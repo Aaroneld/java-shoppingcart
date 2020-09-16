@@ -2,12 +2,15 @@ package com.lambdaschool.shoppingcart.services;
 
 import com.lambdaschool.shoppingcart.exceptions.ResourceFoundException;
 import com.lambdaschool.shoppingcart.exceptions.ResourceNotFoundException;
+import com.lambdaschool.shoppingcart.models.Role;
 import com.lambdaschool.shoppingcart.models.User;
+import com.lambdaschool.shoppingcart.models.UserRole;
 import com.lambdaschool.shoppingcart.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,6 +27,12 @@ public class UserServiceImpl
 
     @Autowired
     private CartService cartService;
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private HelperFunction helperFunction;
 
     @Override
     public List<User> findAll()
@@ -46,6 +55,20 @@ public class UserServiceImpl
                 .orElseThrow(() -> new ResourceNotFoundException("User id " + id + " not found!"));
     }
 
+    @Override
+    public List<User> findByNameContaining(String username) {
+
+        List<User> list = new ArrayList<>();
+        return list;
+
+    }
+
+    @Override
+    public User findByName(String name) {
+        return userrepos.findByUsername(name);
+
+    }
+
     @Transactional
     @Override
     public void delete(long id)
@@ -62,7 +85,17 @@ public class UserServiceImpl
         User newUser = new User();
 
         newUser.setUsername(user.getUsername());
-        newUser.setComments(user.getComments());
+        newUser.setPasswordNoEncrypt(user.getPassword());
+
+        for (UserRole ur: user.getRoles())
+        {
+
+
+            newUser.getRoles()
+                    .add(new UserRole(ur.getRole(), newUser));
+        }
+
+        System.out.println(newUser);
 
         if (user.getCarts()
                 .size() > 0)
@@ -71,4 +104,9 @@ public class UserServiceImpl
         }
         return userrepos.save(newUser);
     }
+
+//    @Override
+//    public User update(User user, long id) {
+//        return null;
+//    }
 }
